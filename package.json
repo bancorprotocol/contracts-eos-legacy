@@ -1,0 +1,19 @@
+{
+  "name": "@bancor/multi-converter-migration",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compile": "./scripts/compile.sh",
+    "deploy": "./scripts/deploy.sh",
+    "test": "mocha -t 8000 --bail ./tests/MultiConverterMigration.test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "eosjs": "^20.0.3",
+    "mocha": "^7.0.1",
+    "node-fetch": "^2.6.0"
+  }
+}

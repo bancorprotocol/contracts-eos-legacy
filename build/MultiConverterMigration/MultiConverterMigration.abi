@@ -1,0 +1,161 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "addcnvrtrcur",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_sym",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "converter_account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "context_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "current_converter",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "converter_currency_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "sym",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "delcnvrtrcur",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_sym",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "migrate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_sym",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "migrate2",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_sym",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "migration_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "currency",
+                    "type": "symbol"
+                },
+                {
+                    "name": "stage",
+                    "type": "uint8"
+                },
+                {
+                    "name": "next_owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "reserve_balance_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "reserve",
+                    "type": "extended_asset"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addcnvrtrcur",
+            "type": "addcnvrtrcur",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delcnvrtrcur",
+            "type": "delcnvrtrcur",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "migrate",
+            "type": "migrate",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "migrate2",
+            "type": "migrate2",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "cnvrtrs.curr",
+            "type": "converter_currency_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "context",
+            "type": "context_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "migrations",
+            "type": "migration_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "rsrvbalances",
+            "type": "reserve_balance_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}
