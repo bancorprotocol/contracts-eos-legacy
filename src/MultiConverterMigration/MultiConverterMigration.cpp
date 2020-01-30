@@ -10,11 +10,11 @@ ACTION MultiConverterMigration::migrate(symbol_code converter_currency_sym){
     check(!current_context.exists(), "context already set");
     current_context.set(context_t{ converter_currency_sym }, get_self());
 
-    const LegacyBancorConverter::settings_t& settings = get_original_converter_settings(converter_currency);
-    const vector<LegacyBancorConverter::reserve_t> reserves = get_original_reserves(converter_currency);
+    const BancorConverter::settings_t& settings = get_original_converter_settings(converter_currency);
+    const vector<BancorConverter::reserve_t> reserves = get_original_reserves(converter_currency);
     uint8_t reserve_index = 0;
     asset old_pool_tokens = get_balance(settings.smart_contract, get_self(), settings.smart_currency.symbol.code());
-    for (const LegacyBancorConverter::reserve_t& reserve : reserves) {
+    for (const BancorConverter::reserve_t& reserve : reserves) {
         string lowest_asset = asset(1, reserve.currency.symbol).to_string();
 
         string conversion_path = converter_currency.account.to_string() + " " + reserve.currency.symbol.code().to_string();
@@ -122,7 +122,7 @@ void MultiConverterMigration::on_transfer(name from, name to, asset quantity, st
 
 void MultiConverterMigration::create_converter(name from, asset quantity) {
     converter_currency_t converter_currency = get_converter_currency(quantity.symbol.code());
-    const LegacyBancorConverter::settings_t& settings = get_original_converter_settings(converter_currency);
+    const BancorConverter::settings_t& settings = get_original_converter_settings(converter_currency);
     check(settings.smart_contract == get_first_receiver(), "unknown token contract");
 
     migrations migrations_table(get_self(), quantity.symbol.code().raw());
@@ -139,8 +139,8 @@ void MultiConverterMigration::create_converter(name from, asset quantity) {
         make_tuple(get_self(), quantity.symbol.code(), initial_supply)
     ).send();
 
-    const vector<LegacyBancorConverter::reserve_t> reserves = get_original_reserves(converter_currency);
-    for (const LegacyBancorConverter::reserve_t& reserve : reserves) {
+    const vector<BancorConverter::reserve_t> reserves = get_original_reserves(converter_currency);
+    for (const BancorConverter::reserve_t& reserve : reserves) {
         action(
             permission_level{ get_self(), "active"_n },
             MULTI_CONVERTER, "setreserve"_n,
@@ -190,10 +190,10 @@ void MultiConverterMigration::clear(symbol_code converter_currency) {
     migrations_table.erase(migration_data);
 }
 
-vector<LegacyBancorConverter::reserve_t> MultiConverterMigration::get_original_reserves(MultiConverterMigration::converter_currency_t converter_currency) {
-    LegacyBancorConverter::reserves original_converter_reserves_table(converter_currency.account, converter_currency.account.value);
+vector<BancorConverter::reserve_t> MultiConverterMigration::get_original_reserves(MultiConverterMigration::converter_currency_t converter_currency) {
+    BancorConverter::reserves original_converter_reserves_table(converter_currency.account, converter_currency.account.value);
 
-    vector<LegacyBancorConverter::reserve_t> reserves;
+    vector<BancorConverter::reserve_t> reserves;
     for (const auto& reserve : original_converter_reserves_table) {
         reserves.push_back(reserve);
     }
@@ -209,8 +209,8 @@ const MultiConverterMigration::converter_currency_t& MultiConverterMigration::ge
 }
 
 
-const LegacyBancorConverter::settings_t& MultiConverterMigration::get_original_converter_settings(MultiConverterMigration::converter_currency_t converter_currency) {
-    LegacyBancorConverter::settings original_converter_settings_table(converter_currency.account, converter_currency.account.value);
+const BancorConverter::settings_t& MultiConverterMigration::get_original_converter_settings(MultiConverterMigration::converter_currency_t converter_currency) {
+    BancorConverter::settings original_converter_settings_table(converter_currency.account, converter_currency.account.value);
     const auto& st = original_converter_settings_table.get("settings"_n.value, "converter settings do not exist");
     
     return st;

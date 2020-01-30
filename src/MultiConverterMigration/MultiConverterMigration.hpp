@@ -8,7 +8,7 @@
 #include <eosio/symbol.hpp>
 #include <eosio/singleton.hpp>
 
-#include "../LegacyBancorConverter/LegacyBancorConverter.hpp"
+#include "../BancorConverter/BancorConverter.hpp"
 
 
 using namespace eosio;
@@ -76,8 +76,8 @@ CONTRACT MultiConverterMigration : public contract {
         
         void increment_converter_stage(symbol_code converter_currency);
         void clear(symbol_code converter_currency);
-        vector<LegacyBancorConverter::reserve_t> get_original_reserves(converter_currency_t converter_currency);
-        const LegacyBancorConverter::settings_t& get_original_converter_settings(converter_currency_t converter_currency);
+        vector<BancorConverter::reserve_t> get_original_reserves(converter_currency_t converter_currency);
+        const BancorConverter::settings_t& get_original_converter_settings(converter_currency_t converter_currency);
         const converter_currency_t& get_converter_currency(symbol_code sym);
         asset get_balance(name contract, name owner, symbol_code sym);
     
