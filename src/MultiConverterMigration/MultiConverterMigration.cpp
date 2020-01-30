@@ -63,6 +63,12 @@ ACTION MultiConverterMigration::migrate2(symbol_code converter_currency_sym){
         make_tuple(get_self(), migration.next_owner, new_pool_tokens, string("new converter pool tokens"))
     ).send();
 
+    action(
+        permission_level{ get_self(), "active"_n },
+        MULTI_CONVERTER, "updateowner"_n,
+        make_tuple(converter_currency_sym, migration.next_owner)
+    ).send();
+
     increment_converter_stage(converter_currency_sym);
     clear(converter_currency_sym);
 }
@@ -186,7 +192,7 @@ void MultiConverterMigration::increment_converter_stage(symbol_code converter_cu
 void MultiConverterMigration::clear(symbol_code converter_currency) {
     migrations migrations_table(get_self(), converter_currency.raw());
     const auto migration_data = migrations_table.find(converter_currency.raw());
-
+    check(migration_data->stage == EMigrationStage::DONE, "cannot clear migation while it's still in progress");
     migrations_table.erase(migration_data);
 }
 

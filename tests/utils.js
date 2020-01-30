@@ -50,9 +50,19 @@ const getReserveBalance = async function (converterCurrencySymbol, converter, re
     })).rows[0].balance;
 }
 
+const getTableRows = async (account, scope, table) => {
+    return rpc.get_table_rows({
+        "code": account,
+        "scope": scope,
+        "table": table,
+        "limit": 10
+    })
+}
+
 module.exports = {
     api,
     transfer,
     getBalance,
-    getReserveBalance
+    getReserveBalance,
+    getTableRows
 };
