@@ -1,7 +1,7 @@
 
 const { assert } = require('chai')
 
-const { api, transfer, getBalance, getReserveBalance, getTableRows } = require('./utils')
+const { api, transfer, convert, getBalance, getReserveBalance, getTableRows } = require('./utils')
 
 const testAccount = 'bnttestuser1'
 const migrationContract = 'migration'
@@ -18,6 +18,11 @@ describe('MultiConverterMigration', () => {
             converter: 'bnt2dddcnvrt',
             relay: { account: 'bnt2dddrelay', symbol: 'BNTDDD' },
             reserve: { account: 'ddd', symbol: 'DDD' }
+        },
+        {
+            converter: 'bnt2eeecnvrt',
+            relay: { account: 'bnt2eeerelay', symbol: 'BNTEEE' },
+            reserve: { account: 'eee', symbol: 'EEE' }
         }
     ]
 
@@ -80,4 +85,6 @@ async function endToEnd(converterToBeMigrated) {
 
     assert.equal(newConverter.fee, oldConverterSettings.fee, "unexpected fee")
     assert.equal(newConverter.owner, testAccount, "unexpected converter owner")
+
+    await convert('1.00000000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${converterToBeMigrated.relay.symbol}`, converterToBeMigrated.reserve.symbol])
 }

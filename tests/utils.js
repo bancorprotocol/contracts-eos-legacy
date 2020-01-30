@@ -59,9 +59,39 @@ const getTableRows = async (account, scope, table) => {
     })
 }
 
+const convert = async function (quantity, tokenAccount, conversionPath,
+                                   from = 'bnttestuser1', to = from, min = '0.00000001') {
+    if (conversionPath instanceof Array)
+        conversionPath = conversionPath.join(' ')
+
+    const memo = `1,${conversionPath},${min},${to}`
+    const result = await api.transact({ 
+        actions: [{
+            account: tokenAccount,
+            name: "transfer",
+            authorization: [{
+                actor: from,
+                permission: 'active',
+            }],
+            data: {
+                from: from,
+                to: 'thisisbancor',
+                quantity,
+                memo
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result
+}
+
 module.exports = {
     api,
     transfer,
+    convert,
     getBalance,
     getReserveBalance,
     getTableRows
