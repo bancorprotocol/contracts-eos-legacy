@@ -3,67 +3,81 @@ const { assert } = require('chai')
 
 const { api, transfer, getBalance, getReserveBalance, getTableRows } = require('./utils')
 
+const testAccount = 'bnttestuser1'
+const migrationContract = 'migration'
+const bancorConverter = 'multiconvert'
 
 describe('MultiConverterMigration', () => {
-    const testAccount = 'bnttestuser1'
-    const migrationContract = 'migration'
-    const bancorConverter = 'multiconvert'
-    const converterToBeMigrated = { converter: 'bnt2bbbcnvrt', currencySymbol: 'BNTBBB', relay: 'bnt2bbbrelay' }
-
-    it('Basic test', async function () {
-        const { rows: [oldConverterSettings] } = await getTableRows(converterToBeMigrated.converter, converterToBeMigrated.converter, 'settings')
-        
-        const preMigrationReserveABalance = await getBalance(converterToBeMigrated.converter, 'bntbntbntbnt', 'BNT');
-        const preMigrationReserveBBalance = await getBalance(converterToBeMigrated.converter, 'bbb', 'BBB');
-        
-        const totalSupply = await getBalance(testAccount, converterToBeMigrated.relay, converterToBeMigrated.currencySymbol);
-        await transfer(converterToBeMigrated.relay, testAccount, migrationContract, totalSupply, '');
-        
-        await api.transact({ 
-            actions: [{
-                account: migrationContract,
-                name: "migrate",
-                authorization: [{
-                    actor: testAccount,
-                    permission: 'active',
-                }],
-                data: {
-                    converter_currency_sym: converterToBeMigrated.currencySymbol
-                }
-            }]
-        }, 
+    const converters = [
         {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
-
-        await api.transact({ 
-            actions: [{
-                account: migrationContract,
-                name: "migrate2",
-                authorization: [{
-                    actor: testAccount,
-                    permission: 'active',
-                }],
-                data: {
-                    converter_currency_sym: converterToBeMigrated.currencySymbol
-                }
-            }]
-        }, 
+            converter: 'bnt2ccccnvrt',
+            relay: { account: 'bnt2cccrelay', symbol: 'BNTCCC' },
+            reserve: { account: 'ccc', symbol: 'CCC' }
+        },
         {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
+            converter: 'bnt2dddcnvrt',
+            relay: { account: 'bnt2dddrelay', symbol: 'BNTDDD' },
+            reserve: { account: 'ddd', symbol: 'DDD' }
+        }
+    ]
 
-        const { rows: [newConverter] } = await getTableRows(bancorConverter, converterToBeMigrated.currencySymbol, 'converters')
-        
-        const postMigrationReserveABalance = await getReserveBalance(converterToBeMigrated.currencySymbol, bancorConverter, 'BNT');
-        const postMigrationReserveBBalance = await getReserveBalance(converterToBeMigrated.currencySymbol, bancorConverter, 'BBB');
-        
-        assert.equal(preMigrationReserveABalance, postMigrationReserveABalance, 'unexpected reserve balance')
-        assert.equal(preMigrationReserveBBalance, postMigrationReserveBBalance, 'unexpected reserve balance')
-
-        assert.equal(newConverter.fee, oldConverterSettings.fee, "unexpected fee")
-        assert.equal(newConverter.owner, testAccount, "unexpected converter owner")
-    })
+    for (const converterToBeMigrated of converters)
+        it(`end to end - ${converterToBeMigrated.converter}`, async () => endToEnd(converterToBeMigrated))
 })
+
+async function endToEnd(converterToBeMigrated) {
+    const { rows: [oldConverterSettings] } = await getTableRows(converterToBeMigrated.converter, converterToBeMigrated.converter, 'settings')
+    
+    const preMigrationReserveABalance = await getBalance(converterToBeMigrated.converter, 'bntbntbntbnt', 'BNT');
+    const preMigrationReserveBBalance = await getBalance(converterToBeMigrated.converter, converterToBeMigrated.reserve.account, converterToBeMigrated.reserve.symbol);
+    
+    const totalSupply = await getBalance(testAccount, converterToBeMigrated.relay.account, converterToBeMigrated.relay.symbol);
+    await transfer(converterToBeMigrated.relay.account, testAccount, migrationContract, totalSupply, '');
+    
+    await api.transact({ 
+        actions: [{
+            account: migrationContract,
+            name: "migrate",
+            authorization: [{
+                actor: testAccount,
+                permission: 'active',
+            }],
+            data: {
+                converter_currency_sym: converterToBeMigrated.relay.symbol
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+
+    await api.transact({ 
+        actions: [{
+            account: migrationContract,
+            name: "migrate2",
+            authorization: [{
+                actor: testAccount,
+                permission: 'active',
+            }],
+            data: {
+                converter_currency_sym: converterToBeMigrated.relay.symbol
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+
+    const { rows: [newConverter] } = await getTableRows(bancorConverter, converterToBeMigrated.relay.symbol, 'converters')
+    
+    const postMigrationReserveABalance = await getReserveBalance(converterToBeMigrated.relay.symbol, bancorConverter, 'BNT');
+    const postMigrationReserveBBalance = await getReserveBalance(converterToBeMigrated.relay.symbol, bancorConverter, converterToBeMigrated.reserve.symbol);
+    
+    assert.equal(preMigrationReserveABalance, postMigrationReserveABalance, 'unexpected reserve balance')
+    assert.equal(preMigrationReserveBBalance, postMigrationReserveBBalance, 'unexpected reserve balance')
+
+    assert.equal(newConverter.fee, oldConverterSettings.fee, "unexpected fee")
+    assert.equal(newConverter.owner, testAccount, "unexpected converter owner")
+}
