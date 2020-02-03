@@ -52,26 +52,6 @@
             ]
         },
         {
-            "name": "migrate",
-            "base": "",
-            "fields": [
-                {
-                    "name": "converter_currency_sym",
-                    "type": "symbol_code"
-                }
-            ]
-        },
-        {
-            "name": "migrate2",
-            "base": "",
-            "fields": [
-                {
-                    "name": "converter_currency_sym",
-                    "type": "symbol_code"
-                }
-            ]
-        },
-        {
             "name": "migration_t",
             "base": "",
             "fields": [
@@ -113,16 +93,6 @@
         {
             "name": "delcnvrtrcur",
             "type": "delcnvrtrcur",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "migrate",
-            "type": "migrate",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "migrate2",
-            "type": "migrate2",
             "ricardian_contract": ""
         }
     ],

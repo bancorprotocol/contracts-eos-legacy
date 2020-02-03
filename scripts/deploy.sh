@@ -43,6 +43,7 @@ POOL_TOKEN="bnt2cccrelay"
 POOL_TOKEN_SYM="BNTCCC"
 RESERVE="ccc"
 RESERVE_SYM="CCC"
+FEE="0"
 cleos system newaccount eosio $CONVERTER EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 cleos system newaccount eosio $POOL_TOKEN EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 cleos system newaccount eosio $RESERVE EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
@@ -50,6 +51,8 @@ cleos set contract $CONVERTER ./build/BancorConverter/
 cleos set contract $POOL_TOKEN ./build/eosio.token/
 cleos set contract $RESERVE ./build/eosio.token/
 cleos set account permission $CONVERTER active --add-code
+cleos set account permission $CONVERTER manager '{"threshold":1,"accounts":[{"permission":{"actor":"migration","permission":"active"},"weight":1}]}'
+cleos set action permission $CONVERTER $CONVERTER update manager
 
 cleos push action $POOL_TOKEN create '["'$CONVERTER'", "250000000.00000000 '$POOL_TOKEN_SYM'"]' -p $POOL_TOKEN
 cleos push action $POOL_TOKEN issue '[ "'$CONVERTER'", "100000.00000000 '$POOL_TOKEN_SYM'", ""]' -p $CONVERTER
@@ -57,7 +60,7 @@ cleos push action $POOL_TOKEN transfer '["'$CONVERTER'", "bnttestuser1", "100000
 
 cleos push action $RESERVE create '["'$CONVERTER'", "250000000.00000000 '$RESERVE_SYM'"]' -p $RESERVE
 
-cleos push action $CONVERTER init '["'$POOL_TOKEN'", "0.00000000 '$POOL_TOKEN_SYM'", "1", "1", "thisisbancor", "0", "30000", "0"]' -p $CONVERTER
+cleos push action $CONVERTER init '["'$POOL_TOKEN'", "0.00000000 '$POOL_TOKEN_SYM'", "1", "1", "thisisbancor", "0", "30000", "'$FEE'"]' -p $CONVERTER
 cleos push action $CONVERTER setreserve '["bntbntbntbnt", "8,BNT","500000", "1"]' -p $CONVERTER
 cleos push action $CONVERTER setreserve '["'$RESERVE'", "8,'$RESERVE_SYM'","500000", "1"]' -p $CONVERTER
 cleos push action $RESERVE open '["migration", "8,'$RESERVE_SYM'", "eosio"]' -p eosio 
@@ -74,6 +77,7 @@ POOL_TOKEN="bnt2dddrelay"
 POOL_TOKEN_SYM="BNTDDD"
 RESERVE="ddd"
 RESERVE_SYM="DDD"
+FEE="1000"
 cleos system newaccount eosio $CONVERTER EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 cleos system newaccount eosio $POOL_TOKEN EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 cleos system newaccount eosio $RESERVE EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
@@ -81,6 +85,8 @@ cleos set contract $CONVERTER ./build/BancorConverter/
 cleos set contract $POOL_TOKEN ./build/eosio.token/
 cleos set contract $RESERVE ./build/eosio.token/
 cleos set account permission $CONVERTER active --add-code
+cleos set account permission $CONVERTER manager '{"threshold":1,"accounts":[{"permission":{"actor":"migration","permission":"active"},"weight":1}]}'
+cleos set action permission $CONVERTER $CONVERTER update manager
 
 cleos push action $POOL_TOKEN create '["'$CONVERTER'", "250000000.00000000 '$POOL_TOKEN_SYM'"]' -p $POOL_TOKEN
 cleos push action $POOL_TOKEN issue '[ "'$CONVERTER'", "12000.02009001 '$POOL_TOKEN_SYM'", ""]' -p $CONVERTER
@@ -89,7 +95,7 @@ cleos push action $POOL_TOKEN transfer '["'$CONVERTER'", "bnttestuser1", "12000.
 cleos push action $RESERVE create '["'$CONVERTER'", "250000000.00000000 '$RESERVE_SYM'"]' -p $RESERVE
 
 
-cleos push action $CONVERTER init '["'$POOL_TOKEN'", "0.00000000 '$POOL_TOKEN_SYM'", "1", "1", "thisisbancor", "0", "30000", "0"]' -p $CONVERTER
+cleos push action $CONVERTER init '["'$POOL_TOKEN'", "0.00000000 '$POOL_TOKEN_SYM'", "1", "1", "thisisbancor", "0", "30000", "'$FEE'"]' -p $CONVERTER
 cleos push action $CONVERTER setreserve '["bntbntbntbnt", "8,BNT","500000", "1"]' -p $CONVERTER
 cleos push action $CONVERTER setreserve '["'$RESERVE'", "8,'$RESERVE_SYM'","500000", "1"]' -p $CONVERTER
 cleos push action $RESERVE open '["migration", "8,'$RESERVE_SYM'", "eosio"]' -p eosio 
@@ -107,6 +113,7 @@ POOL_TOKEN="bnt2eeerelay"
 POOL_TOKEN_SYM="BNTEEE"
 RESERVE="eee"
 RESERVE_SYM="EEE"
+FEE="0"
 cleos system newaccount eosio $CONVERTER EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 cleos system newaccount eosio $POOL_TOKEN EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 cleos system newaccount eosio $RESERVE EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
@@ -114,6 +121,8 @@ cleos set contract $CONVERTER ./build/BancorConverter/
 cleos set contract $POOL_TOKEN ./build/eosio.token/
 cleos set contract $RESERVE ./build/eosio.token/
 cleos set account permission $CONVERTER active --add-code
+cleos set account permission $CONVERTER manager '{"threshold":1,"accounts":[{"permission":{"actor":"migration","permission":"active"},"weight":1}]}'
+cleos set action permission $CONVERTER $CONVERTER update manager
 
 cleos push action $POOL_TOKEN create '["'$CONVERTER'", "250000000.00000000 '$POOL_TOKEN_SYM'"]' -p $POOL_TOKEN
 cleos push action $POOL_TOKEN issue '[ "'$CONVERTER'", "602.03450000 '$POOL_TOKEN_SYM'", ""]' -p $CONVERTER
@@ -121,7 +130,7 @@ cleos push action $POOL_TOKEN transfer '["'$CONVERTER'", "bnttestuser1", "602.03
 
 cleos push action $RESERVE create '["'$CONVERTER'", "250000000.00000000 '$RESERVE_SYM'"]' -p $RESERVE
 
-cleos push action $CONVERTER init '["'$POOL_TOKEN'", "0.00000000 '$POOL_TOKEN_SYM'", "1", "1", "thisisbancor", "0", "30000", "0"]' -p $CONVERTER
+cleos push action $CONVERTER init '["'$POOL_TOKEN'", "0.00000000 '$POOL_TOKEN_SYM'", "1", "1", "thisisbancor", "0", "30000", "'$FEE'"]' -p $CONVERTER
 cleos push action $CONVERTER setreserve '["bntbntbntbnt", "8,BNT","500000", "1"]' -p $CONVERTER
 cleos push action $CONVERTER setreserve '["'$RESERVE'", "8,'$RESERVE_SYM'","500000", "1"]' -p $CONVERTER
 cleos push action $RESERVE open '["migration", "8,'$RESERVE_SYM'", "eosio"]' -p eosio 

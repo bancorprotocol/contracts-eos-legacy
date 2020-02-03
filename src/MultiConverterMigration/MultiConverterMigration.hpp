@@ -63,8 +63,6 @@ CONTRACT MultiConverterMigration : public contract {
         typedef eosio::multi_index<"context"_n, context_t> dummy_for_abi; // hack until abi generator generates correct name
         
 
-        ACTION migrate(symbol_code converter_currency_sym);
-        ACTION migrate2(symbol_code converter_currency_sym);
         ACTION addcnvrtrcur(symbol_code converter_sym, name converter_account);
         ACTION delcnvrtrcur(symbol_code converter_sym);
         
@@ -72,6 +70,8 @@ CONTRACT MultiConverterMigration : public contract {
         void on_transfer(name from, name to, asset quantity, string memo);
     private:
         void create_converter(name from, asset quantity);
+        void liquidate_old_converter(symbol_code converter_currency_sym);
+        void fund_new_converter(symbol_code converter_currency_sym);
         void handle_liquidated_reserve(name from, asset quantity);
         
         void increment_converter_stage(symbol_code converter_currency);

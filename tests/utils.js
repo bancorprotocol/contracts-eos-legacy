@@ -1,3 +1,4 @@
+const { assert } = require('chai')
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig')
 const fetch = require('node-fetch')
 const { TextDecoder, TextEncoder } = require('util')
@@ -88,11 +89,40 @@ const convert = async function (quantity, tokenAccount, conversionPath,
     return result
 }
 
+async function expectError(prom, expectedError='') {
+    try {
+        await prom;
+        assert(false, 'should have failed');
+    }
+    catch (err) {
+        if (expectedError !== '')
+            assert.include(err.message, expectedError, 'valid error')
+        else
+            console.log(err.message)
+    }
+}
+
+async function expectNoError(prom) {
+    let error = ''
+    let result;
+    try {
+        result = await prom;
+    }
+    catch (err) {
+        error = err
+    }
+    assert.equal(error, '', 'promise should have resolved');
+    
+    return result
+}
+
 module.exports = {
     api,
     transfer,
     convert,
     getBalance,
     getReserveBalance,
-    getTableRows
+    getTableRows,
+    expectError,
+    expectNoError
 };

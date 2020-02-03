@@ -34,7 +34,7 @@ ACTION BancorConverter::init(name smart_contract, asset smart_currency, bool sma
 
 ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee) {
     require_auth(get_self());
-
+    
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     

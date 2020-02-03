@@ -169,7 +169,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param fee - conversion fee percentage, must be lower than the maximum fee, same precision
          */
         ACTION update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee);
-        
+
         /**
          * @brief initializes a new reserve in the converter
          * @details can also be used to update an existing reserve, can only be called by the contract account
