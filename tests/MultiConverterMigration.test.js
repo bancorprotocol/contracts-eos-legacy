@@ -36,6 +36,11 @@ const multipleLiquidityProvidersMigrations = [
         relay: { account: 'bnt2cccrelay', symbol: 'BNTCCC' },
         reserve: { account: 'ccc', symbol: 'CCC' }
     },
+    {
+        converter: 'bnt2fffcnvrt',
+        relay: { account: 'bnt2fffrelay', symbol: 'BNTFFF' },
+        reserve: { account: 'fff', symbol: 'FFF' }
+    }
 ]
 
 describe('MultiConverterMigration', () => {
