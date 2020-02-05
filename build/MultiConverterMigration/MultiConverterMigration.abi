@@ -4,7 +4,7 @@
     "types": [],
     "structs": [
         {
-            "name": "addcnvrtrcur",
+            "name": "addconverter",
             "base": "",
             "fields": [
                 {
@@ -14,6 +14,20 @@
                 {
                     "name": "converter_account",
                     "type": "name"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "assertsucess",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_sym",
+                    "type": "symbol_code"
                 }
             ]
         },
@@ -28,7 +42,7 @@
             ]
         },
         {
-            "name": "converter_currency_t",
+            "name": "converter_t",
             "base": "",
             "fields": [
                 {
@@ -38,11 +52,15 @@
                 {
                     "name": "account",
                     "type": "name"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
                 }
             ]
         },
         {
-            "name": "delcnvrtrcur",
+            "name": "delconverter",
             "base": "",
             "fields": [
                 {
@@ -52,24 +70,48 @@
             ]
         },
         {
+            "name": "fundexisting",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_sym",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "fundnew",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_sym",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
             "name": "migration_t",
             "base": "",
             "fields": [
                 {
-                    "name": "account",
-                    "type": "name"
-                },
-                {
                     "name": "currency",
                     "type": "symbol"
+                },
+                {
+                    "name": "converter_account",
+                    "type": "name"
                 },
                 {
                     "name": "stage",
                     "type": "uint8"
                 },
                 {
-                    "name": "next_owner",
+                    "name": "migration_initiator",
                     "type": "name"
+                },
+                {
+                    "name": "converter_exists",
+                    "type": "bool"
                 }
             ]
         },
@@ -82,31 +124,65 @@
                     "type": "extended_asset"
                 }
             ]
+        },
+        {
+            "name": "transferpool",
+            "base": "",
+            "fields": [
+                {
+                    "name": "to",
+                    "type": "name"
+                },
+                {
+                    "name": "pool_tokens",
+                    "type": "symbol_code"
+                }
+            ]
         }
     ],
     "actions": [
         {
-            "name": "addcnvrtrcur",
-            "type": "addcnvrtrcur",
+            "name": "addconverter",
+            "type": "addconverter",
             "ricardian_contract": ""
         },
         {
-            "name": "delcnvrtrcur",
-            "type": "delcnvrtrcur",
+            "name": "assertsucess",
+            "type": "assertsucess",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delconverter",
+            "type": "delconverter",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "fundexisting",
+            "type": "fundexisting",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "fundnew",
+            "type": "fundnew",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "transferpool",
+            "type": "transferpool",
             "ricardian_contract": ""
         }
     ],
     "tables": [
         {
-            "name": "cnvrtrs.curr",
-            "type": "converter_currency_t",
+            "name": "context",
+            "type": "context_t",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
-            "name": "context",
-            "type": "context_t",
+            "name": "converters",
+            "type": "converter_t",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

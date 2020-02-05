@@ -14,7 +14,7 @@ using namespace eosio;
 using namespace std;
 
 /**
- * @defgroup BancorConverter BancorConverter
+ * @defgroup LegacyBancorConverter LegacyBancorConverter
  * @brief Bancor Converter
  * @details The Bancor converter allows conversions between a smart token and tokens
  * that are defined as its reserves and between the different reserves directly.
@@ -55,7 +55,7 @@ using namespace std;
 }
 
 /*! \cond DOCS_EXCLUDE */
-CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
+CONTRACT LegacyBancorConverter : public eosio::contract { /*! \endcond */
     public:
         using contract::contract;
         
@@ -202,7 +202,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves; 
     
     private:
-        using transfer_action = action_wrapper<name("transfer"), &BancorConverter::on_transfer>;
+        using transfer_action = action_wrapper<name("transfer"), &LegacyBancorConverter::on_transfer>;
     
         void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);

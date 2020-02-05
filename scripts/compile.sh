@@ -9,4 +9,4 @@ NC='\033[0m'
 
 echo -e "${GREEN}Compiling ...${NC}"
 eosio-cpp ./src/MultiConverterMigration/MultiConverterMigration.cpp -o ./build/MultiConverterMigration/MultiConverterMigration.wasm --abigen -I.
-eosio-cpp ./src/BancorConverter/BancorConverter.cpp -o ./build/BancorConverter/BancorConverter.wasm --abigen -I.
+eosio-cpp ./src/LegacyBancorConverter/LegacyBancorConverter.cpp -o ./build/LegacyBancorConverter/LegacyBancorConverter.wasm --abigen -I.

@@ -6,9 +6,9 @@
 
 #include "../includes/Common/common.hpp"
 #include "../includes/Token.hpp"
-#include "BancorConverter.hpp"
+#include "LegacyBancorConverter.hpp"
 
-ACTION BancorConverter::init(name smart_contract, asset smart_currency, bool smart_enabled, bool enabled, name network, bool require_balance, uint64_t max_fee, uint64_t fee) {
+ACTION LegacyBancorConverter::init(name smart_contract, asset smart_currency, bool smart_enabled, bool enabled, name network, bool require_balance, uint64_t max_fee, uint64_t fee) {
     require_auth(get_self());
     check(max_fee <= MAX_FEE,
          ("maximum fee must be lower or equal to " + std::to_string(MAX_FEE)).c_str()
@@ -32,7 +32,7 @@ ACTION BancorConverter::init(name smart_contract, asset smart_currency, bool sma
     });
 }
 
-ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee) {
+ACTION LegacyBancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee) {
     require_auth(get_self());
     
     settings settings_table(get_self(), get_self().value);
@@ -51,7 +51,7 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_ba
         EMIT_CONVERSION_FEE_UPDATE_EVENT(prevFee, fee);
 }
 
-ACTION BancorConverter::setreserve(name contract, symbol currency, uint64_t ratio, bool sale_enabled) {
+ACTION LegacyBancorConverter::setreserve(name contract, symbol currency, uint64_t ratio, bool sale_enabled) {
     require_auth(get_self());
     check(currency.is_valid(), "invalid symbol");
     check(is_account(contract), "token's contract is not an account");
@@ -90,7 +90,7 @@ ACTION BancorConverter::setreserve(name contract, symbol currency, uint64_t rati
     EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.code(), reserve_balance, ratio / MAX_RATIO);
 }
 
-ACTION BancorConverter::delreserve(symbol_code currency) {
+ACTION LegacyBancorConverter::delreserve(symbol_code currency) {
     require_auth(get_self());
     check(currency.is_valid(), "invalid symbol");
 
@@ -103,7 +103,7 @@ ACTION BancorConverter::delreserve(symbol_code currency) {
     reserves_table.erase(rsrv);
 }
 
-void BancorConverter::convert(name from, eosio::asset quantity, std::string memo, name code) {
+void LegacyBancorConverter::convert(name from, eosio::asset quantity, std::string memo, name code) {
     auto from_amount = quantity.amount / pow(10, quantity.symbol.precision());
 
     auto memo_object = parse_memo(memo);
@@ -228,7 +228,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
 // returns a reserve object
 // can also be called for the smart token itself
-const BancorConverter::reserve_t& BancorConverter::get_reserve(uint64_t name, const settings_t& settings) {
+const LegacyBancorConverter::reserve_t& LegacyBancorConverter::get_reserve(uint64_t name, const settings_t& settings) {
     if (settings.smart_currency.symbol.code().raw() == name) {
         static reserve_t temp_reserve;
         temp_reserve.ratio = 0;
@@ -244,14 +244,14 @@ const BancorConverter::reserve_t& BancorConverter::get_reserve(uint64_t name, co
 }
 
 // returns the balance object for an account
-asset BancorConverter::get_balance(name contract, name owner, symbol_code sym) {
+asset LegacyBancorConverter::get_balance(name contract, name owner, symbol_code sym) {
     Token::accounts accountstable(contract, owner.value);
     const auto& ac = accountstable.get(sym.raw());
     return ac.balance;
 }
 
 // returns the balance amount for an account
-uint64_t BancorConverter::get_balance_amount(name contract, name owner, symbol_code sym) {
+uint64_t LegacyBancorConverter::get_balance_amount(name contract, name owner, symbol_code sym) {
     Token::accounts accountstable(contract, owner.value);
 
     auto ac = accountstable.find(sym.raw());
@@ -262,7 +262,7 @@ uint64_t BancorConverter::get_balance_amount(name contract, name owner, symbol_c
 }
 
 // returns a token supply
-asset BancorConverter::get_supply(name contract, symbol_code sym) {
+asset LegacyBancorConverter::get_supply(name contract, symbol_code sym) {
     Token::stats statstable(contract, sym.raw());
     const auto& st = statstable.get(sym.raw());
     return st.supply;
@@ -270,7 +270,7 @@ asset BancorConverter::get_supply(name contract, symbol_code sym) {
 
 // given a token supply, reserve balance, ratio and a input amount (in the reserve token),
 // calculates the return for a given conversion (in the main token)
-double BancorConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
+double LegacyBancorConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
     double R(supply);
     double C(balance);
     double F(ratio / MAX_RATIO);
@@ -283,7 +283,7 @@ double BancorConverter::calculate_purchase_return(double balance, double deposit
 
 // given a token supply, reserve balance, ratio and a input amount (in the main token),
 // calculates the return for a given conversion (in the reserve token)
-double BancorConverter::calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio) {
+double LegacyBancorConverter::calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio) {
     double R(supply);
     double C(balance);
     double F(MAX_RATIO / ratio);
@@ -294,11 +294,11 @@ double BancorConverter::calculate_sale_return(double balance, double sell_amount
     return T;
 }
 
-double BancorConverter::quick_convert(double balance, double in, double toBalance) {
+double LegacyBancorConverter::quick_convert(double balance, double in, double toBalance) {
     return in / (balance + in) * toBalance;
 }
 
-void BancorConverter::on_transfer(name from, name to, asset quantity, std::string memo) {
+void LegacyBancorConverter::on_transfer(name from, name to, asset quantity, std::string memo) {
     require_auth(from);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
