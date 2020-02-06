@@ -103,6 +103,7 @@ describe('MultiConverterMigration', () => {
 })
 
 async function singleLiquidityProviderEndToEnd(converterToBeMigrated) {
+    const newPoolTokenSym = converterToBeMigrated.relay.symbol.split('BNT')[1] + 'BNT'
     const { rows: [oldConverterSettings] } = await getTableRows(converterToBeMigrated.converter, converterToBeMigrated.converter, 'settings')
     
     const preMigrationReserveABalance = await getBalance(converterToBeMigrated.converter, 'bntbntbntbnt', 'BNT');
@@ -111,27 +112,29 @@ async function singleLiquidityProviderEndToEnd(converterToBeMigrated) {
     const totalSupply = await getBalance(testAccount1, converterToBeMigrated.relay.account, converterToBeMigrated.relay.symbol);
     await transfer(converterToBeMigrated.relay.account, testAccount1, migrationContract, totalSupply, '');
     
-    const { rows: [newConverter] } = await getTableRows(bancorConverter, converterToBeMigrated.relay.symbol, 'converters')
+    const { rows: [newConverter] } = await getTableRows(bancorConverter, newPoolTokenSym, 'converters')
     
-    const postMigrationReserveABalance = await getReserveBalance(converterToBeMigrated.relay.symbol, bancorConverter, 'BNT');
-    const postMigrationReserveBBalance = await getReserveBalance(converterToBeMigrated.relay.symbol, bancorConverter, converterToBeMigrated.reserve.symbol);
+    const postMigrationReserveABalance = await getReserveBalance(newPoolTokenSym, bancorConverter, 'BNT');
+    const postMigrationReserveBBalance = await getReserveBalance(newPoolTokenSym, bancorConverter, converterToBeMigrated.reserve.symbol);
     
     assert.equal(preMigrationReserveABalance, postMigrationReserveABalance, 'unexpected reserve balance')
     assert.equal(preMigrationReserveBBalance, postMigrationReserveBBalance, 'unexpected reserve balance')
 
     assert.equal(newConverter.fee, oldConverterSettings.fee, "unexpected fee")
     assert.equal(newConverter.owner, testAccount1, "unexpected converter owner")
+    assert.equal(newConverter.currency.split(',')[1], newPoolTokenSym, "unexpected pool token symbol")
 
-    const { rows: [poolTokenStats] } = await getTableRows(multiTokens, converterToBeMigrated.relay.symbol, 'stat')
-    const poolTokenBalance = await getBalance(testAccount1, multiTokens, converterToBeMigrated.relay.symbol);
+    const { rows: [poolTokenStats] } = await getTableRows(multiTokens, newPoolTokenSym, 'stat')
+    const poolTokenBalance = await getBalance(testAccount1, multiTokens, newPoolTokenSym);
     assert.equal(poolTokenStats.supply, poolTokenBalance)
 
     await expectNoError(
-        convert('1.00000000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${converterToBeMigrated.relay.symbol}`, converterToBeMigrated.reserve.symbol])
+        convert('1.00000000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${newPoolTokenSym}`, converterToBeMigrated.reserve.symbol])
     )
 }
 
 async function multipleLiquidityProvidersEndToEnd(converterToBeMigrated) {
+    const newPoolTokenSym = converterToBeMigrated.relay.symbol.split('BNT')[1] + 'BNT'
     const { rows: [oldConverterSettings] } = await getTableRows(converterToBeMigrated.converter, converterToBeMigrated.converter, 'settings')
     
     const preMigrationOldConverterReserveABalance = await getBalance(converterToBeMigrated.converter, 'bntbntbntbnt', 'BNT');
@@ -140,12 +143,12 @@ async function multipleLiquidityProvidersEndToEnd(converterToBeMigrated) {
     const testAccount1PoolTokens = await getBalance(testAccount1, converterToBeMigrated.relay.account, converterToBeMigrated.relay.symbol);
     await transfer(converterToBeMigrated.relay.account, testAccount1, migrationContract, testAccount1PoolTokens, '');
     
-    const { rows: [newConverter] } = await getTableRows(bancorConverter, converterToBeMigrated.relay.symbol, 'converters')
+    const { rows: [newConverter] } = await getTableRows(bancorConverter, newPoolTokenSym, 'converters')
     
     const postMigrationOldConverterReserveABalance = await getBalance(converterToBeMigrated.converter, 'bntbntbntbnt', 'BNT');
     const postMigrationOldConverterReserveBBalance = await getBalance(converterToBeMigrated.converter, converterToBeMigrated.reserve.account, converterToBeMigrated.reserve.symbol);
-    const postMigrationNewConverterReserveABalance = await getReserveBalance(converterToBeMigrated.relay.symbol, bancorConverter, 'BNT');
-    const postMigrationNewConverterReserveBBalance = await getReserveBalance(converterToBeMigrated.relay.symbol, bancorConverter, converterToBeMigrated.reserve.symbol);
+    const postMigrationNewConverterReserveABalance = await getReserveBalance(newPoolTokenSym, bancorConverter, 'BNT');
+    const postMigrationNewConverterReserveBBalance = await getReserveBalance(newPoolTokenSym, bancorConverter, converterToBeMigrated.reserve.symbol);
     
     assert.equal(
         Decimal(preMigrationOldConverterReserveABalance.split(' ')[0]).sub(postMigrationOldConverterReserveABalance.split(' ')[0]).toFixed(),
@@ -160,17 +163,17 @@ async function multipleLiquidityProvidersEndToEnd(converterToBeMigrated) {
 
     assert.equal(newConverter.fee, oldConverterSettings.fee, "unexpected fee")
     assert.equal(newConverter.owner, testAccount1, "unexpected converter owner")
+    assert.equal(newConverter.currency.split(',')[1], newPoolTokenSym, "unexpected pool token symbol")
 
-    const { rows: [poolTokenStats] } = await getTableRows(multiTokens, converterToBeMigrated.relay.symbol, 'stat')
-    const poolTokenBalance = await getBalance(testAccount1, multiTokens, converterToBeMigrated.relay.symbol);
+    const { rows: [poolTokenStats] } = await getTableRows(multiTokens, newPoolTokenSym, 'stat')
+    const poolTokenBalance = await getBalance(testAccount1, multiTokens, newPoolTokenSym);
     assert.equal(poolTokenStats.supply, poolTokenBalance)
     await expectNoError(
-        convert('1.10204000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${converterToBeMigrated.relay.symbol}`, converterToBeMigrated.reserve.symbol])
+        convert('1.10204000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${newPoolTokenSym}`, converterToBeMigrated.reserve.symbol])
     )
-    const testAccount2PoolTokens = await getBalance(testAccount2, converterToBeMigrated.relay.account, converterToBeMigrated.relay.symbol);
-    await transfer(converterToBeMigrated.relay.account, testAccount2, migrationContract, testAccount2PoolTokens, '');
-    
+    const testAccount2oldPoolTokens = await getBalance(testAccount2, converterToBeMigrated.relay.account, converterToBeMigrated.relay.symbol);
+    await transfer(converterToBeMigrated.relay.account, testAccount2, migrationContract, testAccount2oldPoolTokens, '');
     await expectNoError(
-        convert('1.00000000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${converterToBeMigrated.relay.symbol}`, converterToBeMigrated.reserve.symbol])
+        convert('1.00000000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${newPoolTokenSym}`, converterToBeMigrated.reserve.symbol])
     )
 }

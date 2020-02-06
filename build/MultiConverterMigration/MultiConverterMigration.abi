@@ -94,8 +94,12 @@
             "base": "",
             "fields": [
                 {
-                    "name": "currency",
+                    "name": "old_pool_token",
                     "type": "symbol"
+                },
+                {
+                    "name": "new_pool_token",
+                    "type": "symbol_code"
                 },
                 {
                     "name": "converter_account",

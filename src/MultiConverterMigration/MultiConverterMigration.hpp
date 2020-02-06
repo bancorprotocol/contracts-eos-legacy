@@ -34,12 +34,13 @@ CONTRACT MultiConverterMigration : public contract {
         }
 
         TABLE migration_t {
-            symbol currency;
+            symbol old_pool_token;
+            symbol_code new_pool_token;
             name converter_account;
             uint8_t stage;
             name migration_initiator;
             bool converter_exists;
-            uint64_t primary_key() const { return currency.code().raw(); }
+            uint64_t primary_key() const { return old_pool_token.code().raw(); }
         };
         
         TABLE converter_t {
@@ -77,17 +78,18 @@ CONTRACT MultiConverterMigration : public contract {
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
     private:
-        void create_converter(name from, asset quantity);
+        void create_converter(name from, asset quantity, const symbol_code& new_pool_token);
         void liquidate_old_converter(symbol_code converter_currency_sym);
         void handle_liquidated_reserve(name from, asset quantity);
         
-        void init_migration(name from, asset quantity, bool converter_exists);
+        void init_migration(name from, asset quantity, bool converter_exists, const symbol_code& new_pool_token);
         void increment_converter_stage(symbol_code converter_currency);
         void clear(symbol_code converter_currency);
         vector<LegacyBancorConverter::reserve_t> get_original_reserves(converter_t converter);
         const BancorConverter::reserve_t& get_new_converter_reserve(symbol_code converter_sym, symbol_code reserve_sym);
         const LegacyBancorConverter::settings_t& get_original_converter_settings(converter_t converter);
         const converter_t& get_converter(symbol_code sym);
+        const symbol_code generate_converter_symbol(symbol_code old_sym);
         bool does_converter_exist(symbol_code sym);
         
         double calculate_first_reserve_liquidation_amount(double pool_token_supply, double quantity);
@@ -95,5 +97,6 @@ CONTRACT MultiConverterMigration : public contract {
         const name MULTI_CONVERTER = "multiconvert"_n;
         const name MULTI_TOKENS = "multi4tokens"_n;
         const name BANCOR_NETWORK = "thisisbancor"_n;
+        const symbol_code NETWORK_TOKEN_CODE = symbol_code("BNT");
         const double MAX_RATIO = 1000000.0;
 };

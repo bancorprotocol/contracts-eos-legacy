@@ -6,7 +6,7 @@
 
 void MultiConverterMigration::liquidate_old_converter(symbol_code converter_currency_sym){
     converters converters_table(get_self(), converter_currency_sym.raw());
-    const converter_t& converter = converters_table.get(converter_currency_sym.raw(), "converter_currency wasn't found");
+    const converter_t& converter = converters_table.get(converter_currency_sym.raw(), "[liquidate_old_converter] converter_currency wasn't found");
 
     context current_context(get_self(), get_self().value);
     check(!current_context.exists(), "context already set");
@@ -61,21 +61,20 @@ void MultiConverterMigration::liquidate_old_converter(symbol_code converter_curr
 ACTION MultiConverterMigration::fundexisting(symbol_code converter_currency_sym) {
     require_auth(get_self());
     
+    migrations migrations_table(get_self(), converter_currency_sym.raw());
     converters converters_table(get_self(), converter_currency_sym.raw());
-    const converter_t& converter_currency = converters_table.get(converter_currency_sym.raw(), "converter_currency wasn't found");
+    const converter_t& converter_currency = converters_table.get(converter_currency_sym.raw(), "[fundexisting] converter_currency wasn't found");
+    const migration_t& migration = migrations_table.get(converter_currency_sym.raw(), "cannot find migration data");
     
-    BancorConverter::converters new_converters_table(MULTI_CONVERTER, converter_currency_sym.raw());
-    const BancorConverter::converter_t& converter = new_converters_table.get(converter_currency_sym.raw());
+    BancorConverter::converters new_converters_table(MULTI_CONVERTER, migration.new_pool_token.raw());
+    const BancorConverter::converter_t& converter = new_converters_table.get(migration.new_pool_token.raw(), "converter not found");
 
     reserve_balances reserve_balances_table(get_self(), converter_currency_sym.raw());
     auto reserve_balance = reserve_balances_table.begin();
     while (reserve_balance != reserve_balances_table.end()) {
-        string lowest_asset = asset(1, converter.currency).to_string();
-
-        string conversion_path = MULTI_CONVERTER.to_string() + ":" + converter.currency.code().to_string()
-            + " " + converter.currency.code().to_string();
-        string min_return = lowest_asset.erase(lowest_asset.find(" "));
-        string memo = "1," + conversion_path + "," + min_return + "," + get_self().to_string();
+        string conversion_path = MULTI_CONVERTER.to_string() + ":" + migration.new_pool_token.to_string()
+            + " " + migration.new_pool_token.to_string();
+        string memo = "1," + conversion_path + ",0.0001," + get_self().to_string();
         action(
             permission_level{ get_self(), "active"_n },
             reserve_balance->reserve.contract, "transfer"_n,
@@ -85,12 +84,10 @@ ACTION MultiConverterMigration::fundexisting(symbol_code converter_currency_sym)
         reserve_balance = reserve_balances_table.erase(reserve_balance);
     }
     
-    migrations migrations_table(get_self(), converter_currency_sym.raw());
-    const migration_t& migration = migrations_table.get(converter_currency_sym.raw(), "cannot find migration data");
     action(
         permission_level{ get_self(), "active"_n },
         get_self(), "transferpool"_n,
-        make_tuple(migration.migration_initiator, converter_currency_sym)
+        make_tuple(migration.migration_initiator, migration.new_pool_token)
     ).send();
 
     increment_converter_stage(converter_currency_sym);
@@ -103,14 +100,15 @@ ACTION MultiConverterMigration::fundexisting(symbol_code converter_currency_sym)
 
 ACTION MultiConverterMigration::fundnew(symbol_code converter_currency_sym) {
     require_auth(get_self());
-    
+    migrations migrations_table(get_self(), converter_currency_sym.raw());
     converters converters_table(get_self(), converter_currency_sym.raw());
-    const converter_t& converter_currency = converters_table.get(converter_currency_sym.raw(), "converter_currency wasn't found");
-
+    const converter_t& converter_currency = converters_table.get(converter_currency_sym.raw(), "[fundnew] converter_currency wasn't found");
+    const migration_t& migration = migrations_table.get(converter_currency_sym.raw(), "cannot find migration data");
+    
     reserve_balances reserve_balances_table(get_self(), converter_currency_sym.raw());
     auto reserve_balance = reserve_balances_table.begin();
     while (reserve_balance != reserve_balances_table.end()) {
-        const string memo = "fund;" + converter_currency_sym.to_string();
+        const string memo = "fund;" + migration.new_pool_token.to_string();
         action(
             permission_level{ get_self(), "active"_n },
             reserve_balance->reserve.contract, "transfer"_n,
@@ -119,17 +117,15 @@ ACTION MultiConverterMigration::fundnew(symbol_code converter_currency_sym) {
 
         reserve_balance = reserve_balances_table.erase(reserve_balance);
     }
-    migrations migrations_table(get_self(), converter_currency_sym.raw());
-    const migration_t& migration = migrations_table.get(converter_currency_sym.raw(), "cannot find migration data");
     action(
         permission_level{ get_self(), "active"_n },
         MULTI_CONVERTER, "updateowner"_n,
-        make_tuple(converter_currency_sym, migration.migration_initiator)
+        make_tuple(migration.new_pool_token, migration.migration_initiator)
     ).send();
     action(
         permission_level{ get_self(), "active"_n },
         get_self(), "transferpool"_n,
-        make_tuple(migration.migration_initiator, converter_currency_sym)
+        make_tuple(migration.migration_initiator, migration.new_pool_token)
     ).send();
 
     increment_converter_stage(converter_currency_sym);
@@ -164,18 +160,22 @@ ACTION MultiConverterMigration::addconverter(symbol_code converter_sym, name con
 ACTION MultiConverterMigration::delconverter(symbol_code converter_sym) {
     require_auth(get_self());
     converters converters_table(get_self(), converter_sym.raw());
-    const converter_t& converter = converters_table.get(converter_sym.raw(), "converter_currency wasn't found");
+    const converter_t& converter = converters_table.get(converter_sym.raw(), "[delconverter] converter_currency wasn't found");
     
     converters_table.erase(converter);
 }
 
 ACTION MultiConverterMigration::assertsucess(symbol_code converter_sym) {
     require_auth(get_self());
+    migrations migrations_table(get_self(), converter_sym.raw());
     converters converters_table(get_self(), converter_sym.raw());
-    const converter_t& converter = converters_table.get(converter_sym.raw(), "converter_currency wasn't found"); 
+    const migration_t& migration = migrations_table.get(converter_sym.raw());
+    const converter_t& converter = converters_table.get(converter_sym.raw(), "[assertsucess] converter_currency wasn't found"); 
+    
     const LegacyBancorConverter::settings_t& settings = get_original_converter_settings(converter);
+    
     asset old_pool_tokens = Token::get_balance(settings.smart_contract, get_self(), settings.smart_currency.symbol.code());
-    asset new_pool_tokens = Token::get_balance(MULTI_TOKENS, get_self(), converter_sym);
+    asset new_pool_tokens = Token::get_balance(MULTI_TOKENS, get_self(), migration.new_pool_token);
     
     check(old_pool_tokens.amount == 0, "migration contract's old pool tokens balance is not 0");
     check(new_pool_tokens.amount == 0, "migration contract's new pool tokens balance is not 0");
@@ -185,7 +185,7 @@ ACTION MultiConverterMigration::assertsucess(symbol_code converter_sym) {
         asset reserve_balance = Token::get_balance(reserve.contract, get_self(), reserve.currency.symbol.code());
         check(reserve_balance.amount == 0, "migration contract's reserve tokens balance is not 0");
     }
-
+    
     clear(converter_sym);
 }
 
@@ -209,16 +209,17 @@ void MultiConverterMigration::on_transfer(name from, name to, asset quantity, st
 
     switch(current_stage) {
         case EMigrationStage::INITIAL : {
-            bool converter_exists = does_converter_exist(quantity.symbol.code());
-            init_migration(from, quantity, converter_exists);
+            const symbol_code new_converter_sym = generate_converter_symbol(quantity.symbol.code());
+            bool converter_exists = does_converter_exist(new_converter_sym);
+            init_migration(from, quantity, converter_exists, new_converter_sym);
             if (!converter_exists)
-                create_converter(from, quantity);
+                create_converter(from, quantity, new_converter_sym);
             liquidate_old_converter(quantity.symbol.code());
             if (converter_exists)
                 action( 
                     permission_level{ get_self(), "active"_n },
                     get_self(), "fundexisting"_n,
-                    make_tuple(quantity.symbol.code())
+                    make_tuple(quantity.symbol.code()) 
                 ).send();
             else
                 action( 
@@ -226,7 +227,7 @@ void MultiConverterMigration::on_transfer(name from, name to, asset quantity, st
                     get_self(), "fundnew"_n,
                     make_tuple(quantity.symbol.code())
                 ).send();
-            break;   
+            break;
         }
         case EMigrationStage::LIQUIDATION : {
             handle_liquidated_reserve(from, quantity);
@@ -238,7 +239,7 @@ void MultiConverterMigration::on_transfer(name from, name to, asset quantity, st
     }
 }
 
-void MultiConverterMigration::create_converter(name from, asset quantity) {
+void MultiConverterMigration::create_converter(name from, asset quantity, const symbol_code& new_pool_token) {
     const converter_t& converter = get_converter(quantity.symbol.code());
     require_auth(converter.owner);
 
@@ -249,13 +250,13 @@ void MultiConverterMigration::create_converter(name from, asset quantity) {
     action( 
         permission_level{ get_self(), "active"_n },
         MULTI_CONVERTER, "create"_n,
-        make_tuple(get_self(), quantity.symbol.code(), initial_supply)
+        make_tuple(get_self(), new_pool_token, initial_supply)
     ).send();
 
     action( 
         permission_level{ get_self(), "active"_n },
         MULTI_CONVERTER, "updatefee"_n,
-        make_tuple(quantity.symbol.code(), settings.fee)
+        make_tuple(new_pool_token, settings.fee)
     ).send();
 
     const vector<LegacyBancorConverter::reserve_t> reserves = get_original_reserves(converter);
@@ -263,7 +264,7 @@ void MultiConverterMigration::create_converter(name from, asset quantity) {
         action(
             permission_level{ get_self(), "active"_n },
             MULTI_CONVERTER, "setreserve"_n,
-            make_tuple(quantity.symbol.code(), reserve.currency.symbol, reserve.contract, reserve.ratio)
+            make_tuple(new_pool_token, reserve.currency.symbol, reserve.contract, reserve.ratio)
         ).send();
     }
 
@@ -293,12 +294,13 @@ void MultiConverterMigration::handle_liquidated_reserve(name from, asset quantit
 
 // helpers
 
-void MultiConverterMigration::init_migration(name from, asset quantity, bool converter_exists) {
+void MultiConverterMigration::init_migration(name from, asset quantity, bool converter_exists, const symbol_code& new_pool_token) {
     const converter_t& converter = get_converter(quantity.symbol.code());
     migrations migrations_table(get_self(), quantity.symbol.code().raw());
     migrations_table.emplace(get_self(), [&](auto& c) {
+        c.old_pool_token = quantity.symbol;
+        c.new_pool_token = new_pool_token;
         c.converter_account = converter.account;
-        c.currency = quantity.symbol;
         c.migration_initiator = from;
         c.converter_exists = converter_exists;
     });
@@ -333,12 +335,12 @@ vector<LegacyBancorConverter::reserve_t> MultiConverterMigration::get_original_r
 const BancorConverter::reserve_t& MultiConverterMigration::get_new_converter_reserve(symbol_code converter_sym, symbol_code reserve_sym) {
     BancorConverter::reserves new_converter_reserves_table(MULTI_CONVERTER, converter_sym.raw());
 
-    return new_converter_reserves_table.get(reserve_sym.raw());
+    return new_converter_reserves_table.get(reserve_sym.raw(), "reserve not found");
 }
 
 const MultiConverterMigration::converter_t& MultiConverterMigration::get_converter(symbol_code sym) {
     converters converters_table(get_self(), sym.raw());
-    const converter_t& converter_currency = converters_table.get(sym.raw());
+    const converter_t& converter_currency = converters_table.get(sym.raw(), "converter not found");
     return converter_currency;
 }
 
@@ -348,6 +350,23 @@ const LegacyBancorConverter::settings_t& MultiConverterMigration::get_original_c
     const auto& st = original_converter_settings_table.get("settings"_n.value, "converter settings do not exist");
     
     return st;
+}
+
+const symbol_code MultiConverterMigration::generate_converter_symbol(symbol_code old_sym) {
+    converters converters_table(get_self(), old_sym.raw());
+    const converter_t& converter = converters_table.get(old_sym.raw(), "[generate_converter_symbol] converter_currency wasn't found");
+    const vector<LegacyBancorConverter::reserve_t> reserves = get_original_reserves(converter);
+    
+    symbol_code converter_reserve;
+    for (const LegacyBancorConverter::reserve_t& reserve : reserves) {
+        if (reserve.currency.symbol.code() != NETWORK_TOKEN_CODE) {
+            converter_reserve = reserve.currency.symbol.code();
+            break;
+        }
+    }
+    check(converter_reserve.to_string() != "", "couldn't find reserve code");
+    
+    return symbol_code(converter_reserve.to_string() + NETWORK_TOKEN_CODE.to_string());
 }
 
 bool MultiConverterMigration::does_converter_exist(symbol_code sym) {
