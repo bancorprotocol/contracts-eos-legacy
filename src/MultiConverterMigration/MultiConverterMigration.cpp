@@ -68,21 +68,38 @@ ACTION MultiConverterMigration::fundexisting(symbol_code converter_currency_sym)
     
     BancorConverter::converters new_converters_table(MULTI_CONVERTER, migration.new_pool_token.raw());
     const BancorConverter::converter_t& converter = new_converters_table.get(migration.new_pool_token.raw(), "converter not found");
+    
 
+    double funding_pool_return = std::numeric_limits<double>::infinity();
     reserve_balances reserve_balances_table(get_self(), converter_currency_sym.raw());
     auto reserve_balance = reserve_balances_table.begin();
     while (reserve_balance != reserve_balances_table.end()) {
-        string conversion_path = MULTI_CONVERTER.to_string() + ":" + migration.new_pool_token.to_string()
-            + " " + migration.new_pool_token.to_string();
-        string memo = "1," + conversion_path + ",0.0001," + get_self().to_string();
+        double supply = Token::get_supply(MULTI_TOKENS, migration.new_pool_token).amount;
+        double converter_reserve_balance = get_new_converter_reserve(migration.new_pool_token, reserve_balance->reserve.quantity.symbol.code()).balance.amount;
+        funding_pool_return = std::min(funding_pool_return, calculate_fund_pool_return(reserve_balance->reserve.quantity.amount, converter_reserve_balance, supply));
+        
+        string memo = "fund;" + migration.new_pool_token.to_string();
         action(
             permission_level{ get_self(), "active"_n },
             reserve_balance->reserve.contract, "transfer"_n,
-            make_tuple(get_self(), BANCOR_NETWORK, reserve_balance->reserve.quantity, memo)
+            make_tuple(get_self(), MULTI_CONVERTER, reserve_balance->reserve.quantity, memo)
         ).send();
-
         reserve_balance = reserve_balances_table.erase(reserve_balance);
     }
+
+    increment_converter_stage(converter_currency_sym);
+
+    asset funding_amount = asset(funding_pool_return, converter.currency);
+    action(
+        permission_level{ get_self(), "active"_n },
+        MULTI_CONVERTER, "fund"_n,
+        make_tuple(get_self(), funding_amount)
+    ).send();
+    action(
+        permission_level{ get_self(), "active"_n },
+        get_self(), "refundrsrvs"_n,
+        make_tuple(converter_currency_sym)
+    ).send();
     
     action(
         permission_level{ get_self(), "active"_n },
@@ -90,7 +107,6 @@ ACTION MultiConverterMigration::fundexisting(symbol_code converter_currency_sym)
         make_tuple(migration.migration_initiator, migration.new_pool_token)
     ).send();
 
-    increment_converter_stage(converter_currency_sym);
     action(
         permission_level{ get_self(), "active"_n },
         get_self(), "assertsucess"_n,
@@ -146,6 +162,38 @@ ACTION MultiConverterMigration::transferpool(name to, symbol_code pool_tokens) {
     ).send();
 }
 
+ACTION MultiConverterMigration::refundrsrvs(symbol_code converter_pool_token) {
+    require_auth(get_self());
+
+    migrations migrations_table(get_self(), converter_pool_token.raw());
+    const migration_t& migration = migrations_table.get(converter_pool_token.raw());
+    
+    BancorConverter::reserves new_converter_reserves_table(MULTI_CONVERTER, migration.new_pool_token.raw());
+
+    for (const BancorConverter::reserve_t& reserve : new_converter_reserves_table) {
+        BancorConverter::accounts accounts_balances_table(MULTI_CONVERTER, get_self().value);
+
+        const uint128_t secondary_key = BancorConverter::_by_cnvrt(reserve.balance, migration.new_pool_token);
+        const auto index = accounts_balances_table.get_index<"bycnvrt"_n >();
+        const auto account_balance = index.find(secondary_key);
+        
+        if (account_balance != index.end() && account_balance->quantity.amount > 0) {
+            action(
+                permission_level{ get_self(), "active"_n },
+                MULTI_CONVERTER, "withdraw"_n,
+                make_tuple(get_self(), account_balance->quantity,migration.new_pool_token)
+            ).send();
+
+            const string memo = "pool tokens migration reserves refund";
+            action(
+                permission_level{ get_self(), "active"_n },
+                reserve.contract, "transfer"_n,
+                make_tuple(get_self(), migration.migration_initiator, account_balance->quantity, memo)
+            ).send();
+        }
+    }
+}
+
 ACTION MultiConverterMigration::addconverter(symbol_code converter_sym, name converter_account, name owner) {
     require_auth(get_self());
     converters converters_table(get_self(), converter_sym.raw());
@@ -193,6 +241,7 @@ void MultiConverterMigration::on_transfer(name from, name to, asset quantity, st
     if (get_first_receiver() == MULTI_TOKENS || from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
 	    return;
     
+    converters converters_table(get_self(), quantity.symbol.code().raw());
     context current_context(get_self(), get_self().value);
     symbol_code converter_currency;
     if (current_context.exists())
@@ -209,6 +258,8 @@ void MultiConverterMigration::on_transfer(name from, name to, asset quantity, st
 
     switch(current_stage) {
         case EMigrationStage::INITIAL : {
+            const auto converter = converters_table.find(quantity.symbol.code().raw());
+            if (converter == converters_table.end()) break;
             const symbol_code new_converter_sym = generate_converter_symbol(quantity.symbol.code());
             bool converter_exists = does_converter_exist(new_converter_sym);
             init_migration(from, quantity, converter_exists, new_converter_sym);
@@ -387,6 +438,11 @@ double MultiConverterMigration::calculate_first_reserve_liquidation_amount(doubl
         
     check(false, "couldn't find valid quadratic root. x1=" + to_string(x1) + " x2=" + to_string(x2) +", quantity: " + to_string(quantity));
     return 0;
+}
+
+// inputReserve * supply / reserveBalance = amount
+double MultiConverterMigration::calculate_fund_pool_return(double funding_amount, double reserve_balance, double supply) {
+    return supply * funding_amount / reserve_balance;
 }
 
 // poolTokensToSell4ReserveA / _supply = (poolTokensSent - poolTokensToSell4ReserveA) / (_supply - poolTokensToSell4ReserveA)

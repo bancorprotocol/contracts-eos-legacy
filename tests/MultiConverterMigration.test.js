@@ -149,7 +149,8 @@ async function multipleLiquidityProvidersEndToEnd(converterToBeMigrated) {
     const postMigrationOldConverterReserveBBalance = await getBalance(converterToBeMigrated.converter, converterToBeMigrated.reserve.account, converterToBeMigrated.reserve.symbol);
     const postMigrationNewConverterReserveABalance = await getReserveBalance(newPoolTokenSym, bancorConverter, 'BNT');
     const postMigrationNewConverterReserveBBalance = await getReserveBalance(newPoolTokenSym, bancorConverter, converterToBeMigrated.reserve.symbol);
-    
+    const testAccountBalance = await getBalance(testAccount2, 'bntbntbntbnt', 'BNT');
+    console.log(testAccountBalance)
     assert.equal(
         Decimal(preMigrationOldConverterReserveABalance.split(' ')[0]).sub(postMigrationOldConverterReserveABalance.split(' ')[0]).toFixed(),
         Decimal(postMigrationNewConverterReserveABalance.split(' ')[0]).toFixed(),
@@ -169,10 +170,13 @@ async function multipleLiquidityProvidersEndToEnd(converterToBeMigrated) {
     const poolTokenBalance = await getBalance(testAccount1, multiTokens, newPoolTokenSym);
     assert.equal(poolTokenStats.supply, poolTokenBalance)
     await expectNoError(
-        convert('1.10204000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${newPoolTokenSym}`, converterToBeMigrated.reserve.symbol])
+        convert('10.10204000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${newPoolTokenSym}`, converterToBeMigrated.reserve.symbol])
     )
     const testAccount2oldPoolTokens = await getBalance(testAccount2, converterToBeMigrated.relay.account, converterToBeMigrated.relay.symbol);
     await transfer(converterToBeMigrated.relay.account, testAccount2, migrationContract, testAccount2oldPoolTokens, '');
+    const testAccountBalance2 = await getBalance(testAccount2, 'bntbntbntbnt', 'BNT');
+    console.log(testAccountBalance2)
+    console.log('_______________________')
     await expectNoError(
         convert('1.00000000 BNT', 'bntbntbntbnt', [`${bancorConverter}:${newPoolTokenSym}`, converterToBeMigrated.reserve.symbol])
     )

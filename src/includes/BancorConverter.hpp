@@ -293,6 +293,10 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         using delreserve_action = action_wrapper<"delreserve"_n, &BancorConverter::delreserve>;
         using withdraw_action = action_wrapper<"withdraw"_n, &BancorConverter::withdraw>;
         using fund_action = action_wrapper<"fund"_n, &BancorConverter::fund>;
+
+        static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
+           return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
+        }
     private: 
         void convert(name from, asset quantity, string memo, name code);
         std::tuple<asset, double> calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token);
@@ -322,9 +326,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         double calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio);
         double calculate_fund_cost(double funding_amount, double supply, double reserve_balance, double total_ratio);
 
-        static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
-           return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
-        } 
+         
         constexpr static double MAX_RATIO = 1000000.0;
         constexpr static double MAX_FEE = 1000000.0;
         constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.1;

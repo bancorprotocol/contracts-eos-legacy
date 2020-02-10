@@ -71,6 +71,7 @@ CONTRACT MultiConverterMigration : public contract {
         ACTION delconverter(symbol_code converter_sym);
 
         ACTION transferpool(name to, symbol_code pool_tokens);
+        ACTION refundrsrvs(symbol_code converter_pool_token);
         ACTION fundexisting(symbol_code converter_currency_sym);
         ACTION fundnew(symbol_code converter_currency_sym);
         ACTION assertsucess(symbol_code converter_sym);
@@ -93,6 +94,7 @@ CONTRACT MultiConverterMigration : public contract {
         bool does_converter_exist(symbol_code sym);
         
         double calculate_first_reserve_liquidation_amount(double pool_token_supply, double quantity);
+        double calculate_fund_pool_return(double funding_amount, double reserve_balance, double supply);
         
         const name MULTI_CONVERTER = "multiconvert"_n;
         const name MULTI_TOKENS = "multi4tokens"_n;
