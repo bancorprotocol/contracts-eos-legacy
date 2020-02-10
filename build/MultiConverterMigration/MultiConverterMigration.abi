@@ -32,16 +32,6 @@
             ]
         },
         {
-            "name": "context_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "current_converter",
-                    "type": "symbol_code"
-                }
-            ]
-        },
-        {
             "name": "converter_t",
             "base": "",
             "fields": [
@@ -192,13 +182,6 @@
         }
     ],
     "tables": [
-        {
-            "name": "context",
-            "type": "context_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
         {
             "name": "converters",
             "type": "converter_t",

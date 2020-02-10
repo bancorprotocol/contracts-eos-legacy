@@ -55,17 +55,12 @@ CONTRACT MultiConverterMigration : public contract {
             uint64_t primary_key() const { return reserve.quantity.symbol.code().raw(); }
         };
 
-        TABLE context_t {
-            symbol_code current_converter;
-        };
 
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
-        typedef eosio::multi_index<"migrations"_n, migration_t> migrations;
+        typedef eosio::singleton<"migrations"_n, migration_t> migrations;
+        typedef eosio::multi_index<"migrations"_n, migration_t> dummy_for_abi;
         typedef eosio::multi_index<"rsrvbalances"_n, reserve_balance_t> reserve_balances;
 
-        typedef eosio::singleton<"context"_n, context_t> context;
-        typedef eosio::multi_index<"context"_n, context_t> dummy_for_abi; // hack until abi generator generates correct name
-        
 
         ACTION addconverter(symbol_code converter_sym, name converter_account, name owner);
         ACTION delconverter(symbol_code converter_sym);
