@@ -243,10 +243,11 @@ void MultiConverterMigration::on_transfer(name from, name to, asset quantity, st
     uint8_t current_stage = EMigrationStage::INITIAL;
     if (migrations_table.exists()) {
         current_stage = migrations_table.get().stage;
+
+        const auto converter = converters_table.find(quantity.symbol.code().raw());
+        if (converter == converters_table.end() && current_stage != EMigrationStage::LIQUIDATION)
+            return;
     }
-    const auto converter = converters_table.find(quantity.symbol.code().raw());
-    if (converter == converters_table.end() && current_stage != EMigrationStage::LIQUIDATION) return;
-        
 
     switch(current_stage) {
         case EMigrationStage::INITIAL : {

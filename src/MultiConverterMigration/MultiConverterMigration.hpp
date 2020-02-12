@@ -62,7 +62,7 @@ CONTRACT MultiConverterMigration : public contract {
         typedef eosio::multi_index<"rsrvbalances"_n, reserve_balance_t> reserve_balances;
 
 
-        ACTION addconverter(symbol_code converter_sym, name converter_account, name owner);
+        ACTION addconverter(find reserve code);
         ACTION delconverter(symbol_code converter_sym);
 
         ACTION transferpool(name to, symbol_code pool_tokens);
