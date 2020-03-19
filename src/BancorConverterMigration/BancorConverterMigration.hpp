@@ -16,7 +16,7 @@
 using namespace eosio;
 using namespace std;
 
-CONTRACT MultiConverterMigration : public contract {
+CONTRACT BancorConverterMigration : public contract {
     public:
         using contract::contract;
 

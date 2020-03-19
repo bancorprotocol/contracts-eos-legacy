@@ -43,8 +43,8 @@ const multipleLiquidityProvidersMigrations = [
     }
 ]
 
-describe('MultiConverterMigration', () => {
-    it('ensures MultiConverterMigration::addconverter cannot be called without proper permissions', async () => {
+describe('BancorConverterMigration', () => {
+    it('ensures BancorConverterMigration::addconverter cannot be called without proper permissions', async () => {
         const addconverter = api.transact({ 
             actions: [{
                 account: migrationContract,
@@ -70,7 +70,7 @@ describe('MultiConverterMigration', () => {
             'missing authority'
         )
     })
-    it('ensures MultiConverterMigration::delconverter cannot be called without proper permissions', async () => {
+    it('ensures BancorConverterMigration::delconverter cannot be called without proper permissions', async () => {
         const delconverter = api.transact({ 
             actions: [{
                 account: migrationContract,

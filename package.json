@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "./scripts/compile.sh",
     "deploy": "./scripts/deploy.sh",
-    "test": "mocha -t 8000 --bail ./tests/MultiConverterMigration.test.js"
+    "test": "mocha -t 8000 --bail ./tests/BancorConverterMigration.test.js"
   },
   "author": "",
   "license": "ISC",

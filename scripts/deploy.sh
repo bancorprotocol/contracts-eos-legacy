@@ -31,11 +31,11 @@ cleos wallet import --private-key "$MASTER_PRV_KEY"
 
 cleos system newaccount eosio migration $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 
-cleos set contract migration $MY_CONTRACTS_BUILD/MultiConverterMigration
+cleos set contract migration $MY_CONTRACTS_BUILD/BancorConverterMigration
 
 cleos set account permission migration active --add-code
 
-cleos push action bntbntbntbnt open '["migration", "BNT", "eosio"]' -p eosio 
+cleos push action bntbntbntbnt open '["migration", "8,BNT", "eosio"]' -p eosio 
 
 
 CONVERTER="bnt2ccccnvrt"
