@@ -130,6 +130,42 @@
             ]
         },
         {
+            "name": "setsettings",
+            "base": "",
+            "fields": [
+                {
+                    "name": "bancor_converter",
+                    "type": "name"
+                },
+                {
+                    "name": "multi_token",
+                    "type": "name"
+                },
+                {
+                    "name": "network",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "bancor_converter",
+                    "type": "name"
+                },
+                {
+                    "name": "multi_token",
+                    "type": "name"
+                },
+                {
+                    "name": "network",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "transferpool",
             "base": "",
             "fields": [
@@ -176,6 +212,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "setsettings",
+            "type": "setsettings",
+            "ricardian_contract": ""
+        },
+        {
             "name": "transferpool",
             "type": "transferpool",
             "ricardian_contract": ""
@@ -199,6 +240,13 @@
         {
             "name": "rsrvbalances",
             "type": "reserve_balance_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "settings",
+            "type": "settings_t",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

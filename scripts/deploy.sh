@@ -36,7 +36,7 @@ cleos set contract migration $MY_CONTRACTS_BUILD/BancorConverterMigration
 cleos set account permission migration active --add-code
 
 cleos push action bntbntbntbnt open '["migration", "8,BNT", "eosio"]' -p eosio 
-
+cleos push action migration setsettings '["multiconvert", "multi4tokens", "thisisbancor"]' -p migration
 
 CONVERTER="bnt2ccccnvrt"
 POOL_TOKEN="bnt2cccrelay"

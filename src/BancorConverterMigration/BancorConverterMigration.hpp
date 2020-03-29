@@ -33,6 +33,14 @@ CONTRACT BancorConverterMigration : public contract {
             return static_cast<EMigrationStage>(next_stage);
         }
 
+        TABLE settings_t { 
+            name bancor_converter;
+            name multi_token;
+            name network;
+
+            uint64_t primary_key() const { return "settings"_n.value; }
+        };
+        
         TABLE migration_t {
             symbol old_pool_token;
             symbol_code new_pool_token;
@@ -56,12 +64,16 @@ CONTRACT BancorConverterMigration : public contract {
         };
 
 
+        typedef eosio::multi_index<"settings"_n, settings_t> settings_table;
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::singleton<"migrations"_n, migration_t> migrations;
         typedef eosio::multi_index<"migrations"_n, migration_t> dummy_for_abi;
         typedef eosio::multi_index<"rsrvbalances"_n, reserve_balance_t> reserve_balances;
 
 
+        inline BancorConverterMigration(name receiver, name code, datastream<const char *> ds);
+
+        ACTION setsettings(name bancor_converter, name multi_token, name network);
         ACTION addconverter(symbol_code converter_sym, name converter_account, name owner);
         ACTION delconverter(symbol_code converter_sym);
 
@@ -74,6 +86,9 @@ CONTRACT BancorConverterMigration : public contract {
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
     private:
+        settings_table st;
+        settings_table::const_iterator p_global_settings;
+
         void create_converter(name from, asset quantity, const symbol_code& new_pool_token);
         void liquidate_old_converter(symbol_code converter_currency_sym);
         void handle_liquidated_reserve(name from, asset quantity);
@@ -91,9 +106,6 @@ CONTRACT BancorConverterMigration : public contract {
         double calculate_first_reserve_liquidation_amount(double pool_token_supply, double quantity);
         double calculate_fund_pool_return(double funding_amount, double reserve_balance, double supply);
         
-        const name MULTI_CONVERTER = "multiconvert"_n;
-        const name MULTI_TOKENS = "multi4tokens"_n;
-        const name BANCOR_NETWORK = "thisisbancor"_n;
         const symbol_code NETWORK_TOKEN_CODE = symbol_code("BNT");
         const double MAX_RATIO = 1000000.0;
 };
