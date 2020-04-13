@@ -15,7 +15,7 @@ void BancorConverterMigration::liquidate_old_converter(symbol_code converter_cur
 
     const LegacyBancorConverter::settings_t& settings = get_original_converter_settings(converter);
     action(
-        permission_level{ converter.account, "manager"_n },
+        permission_level{ converter.account, "active"_n },
         converter.account, "update"_n,
         make_tuple(settings.smart_enabled, settings.enabled, settings.require_balance, uint64_t(0))
     ).send();
@@ -50,7 +50,7 @@ void BancorConverterMigration::liquidate_old_converter(symbol_code converter_cur
         ).send();
     }
     action(
-        permission_level{ converter.account, "manager"_n },
+        permission_level{ converter.account, "active"_n },
         converter.account, "update"_n,
         make_tuple(settings.smart_enabled, settings.enabled, settings.require_balance, settings.fee)
     ).send();
