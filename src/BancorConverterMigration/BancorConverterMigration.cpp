@@ -445,7 +445,7 @@ const symbol_code BancorConverterMigration::generate_converter_symbol(symbol_cod
     }
     check(converter_reserve.to_string() != "", "couldn't find reserve code");
     
-    return symbol_code(converter_reserve.to_string() + NETWORK_TOKEN_CODE.to_string());
+    return symbol_code(converter_reserve.to_string().substr(0, 4) + NETWORK_TOKEN_CODE.to_string());
 }
 
 bool BancorConverterMigration::does_converter_exist(symbol_code sym) {
