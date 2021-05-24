@@ -274,6 +274,9 @@ void BancorConverterMigration::on_transfer(name from, name to, asset quantity, s
 
     if (get_first_receiver() == p_global_settings->multi_token || from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
 	    return;
+
+    if (memo == "init")
+        return;
     
     converters converters_table(get_self(), quantity.symbol.code().raw());
     migrations migrations_table(get_self(), get_self().value);
